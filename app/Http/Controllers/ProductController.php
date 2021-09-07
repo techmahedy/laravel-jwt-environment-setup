@@ -13,40 +13,41 @@ class ProductController extends Controller
     public function index()
     {   
         if( ! auth()->guard('api')->check() ){
-            return $this->jsonResponse('false','You are not authorized!a!', null, 401);
+            return $this->errorJsonResponse('You are not authorized!a!', null, 401);
         }
 
         $data = Product::with('user:id,name')
                         ->get();
 
-        return $this->jsonResponse(
-            'true',
-            '',
-            $data,
-            200
-        );
+        return response()->json([
+           'isSuccess'   => true,
+           'data'        => [
+               'products'       => $data
+             ],
+           'message'     => ''
+        ]);
     }
 
     public function show($id)
     {   
         if( ! auth()->guard('api')->check() ){
-            return $this->jsonResponse('false','You are not authorized!!', null, 401);
+            return $this->errorJsonResponse('You are not authorized!!', null, 401);
         }
 
         $product = $this->user()->products()->find($id);
         
         if (!$product) {
-            return $this->jsonResponse('false','Sorry, product with id ' . $id . ' cannot be found!', null, 404);
+            return $this->errorJsonResponse('Sorry, product with id ' . $id . ' cannot be found!', null, 404);
         }
 
-        return $this->jsonResponse('true','', $product, 200);
+        return $this->successJsonResponse('', $product, 200);
 
     }
 
     public function store(Request $request)
     {   
         if( ! auth()->guard('api')->check() ){
-            return $this->jsonResponse('false','You are not authorized!!', null, 401);
+            return $this->errorJsonResponse('You are not authorized!!', null, 401);
         }
         
         $validator = Validator::make($request->all(), [
@@ -56,7 +57,7 @@ class ProductController extends Controller
         ]);
 
         if ($validator->fails()) {
-           return $this->jsonResponse('false','Given data was invalid!!', null, 422);
+           return $this->errorJsonResponse('Given data was invalid!!', null, 422);
         }else{
             try {
                 if ($request->expectsJson()) {
@@ -66,15 +67,15 @@ class ProductController extends Controller
                     $product->quantity = $request->quantity;
 
                     if($this->user()->products()->save($product)){
-                        return $this->jsonResponse('true','Product Created Successfully!', $product, 200);
+                        return $this->successJsonResponse('Product Created Successfully!', $product, 200);
                     }
 
-                    return $this->jsonResponse('false','Something went wrong!', null, 422);
+                    return $this->errorJsonResponse('Something went wrong!', null, 422);
                 }
-                return $this->jsonResponse('false','Requested data is not valid!!', null, 422);
+                return $this->errorJsonResponse('Requested data is not valid!!', null, 422);
               } catch (Throwable $e) {
                 Log::info($e);
-                return $this->jsonResponse('false','Something went wrong!', null, 422);
+                return $this->errorJsonResponse('Something went wrong!', null, 422);
              }
         }
     }
@@ -82,7 +83,7 @@ class ProductController extends Controller
     public function update(Request $request, $id)
     {   
         if( ! auth()->guard('api')->check() ){
-            return $this->jsonResponse('false','You are not authorized!!', null, 401);
+            return $this->errorJsonResponse('You are not authorized!!', null, 401);
         }
         
         $validator = Validator::make($request->all(), [
@@ -92,7 +93,7 @@ class ProductController extends Controller
         ]);
 
         if ($validator->fails()) {
-           return $this->jsonResponse('false','Given data was invalid!!', null, 422);
+           return $this->errorJsonResponse('Given data was invalid!!', null, 422);
         }else{
             try {
                 if ($request->expectsJson()) {
@@ -103,15 +104,15 @@ class ProductController extends Controller
                     ->save();
 
                     if($updated){
-                        return $this->jsonResponse('true','Product Updated Successfully!', $product, 200);
+                        return $this->successJsonResponse('Product Updated Successfully!', $product, 200);
                     }
 
-                    return $this->jsonResponse('false','Sorry, product could not be updated!', null, 422);
+                    return $this->errorJsonResponse('Sorry, product could not be updated!', null, 422);
                 }
-                return $this->jsonResponse('false','Requested data is not valid!!', null, 422);
+                return $this->errorJsonResponse('Requested data is not valid!!', null, 422);
               } catch (Throwable $e) {
                 Log::info($e);
-                return $this->jsonResponse('false','Sorry, product with id ' . $id . ' cannot be found!', null, 404);
+                return $this->errorJsonResponse('Sorry, product with id ' . $id . ' cannot be found!', null, 404);
              }
         }
     }
@@ -119,24 +120,24 @@ class ProductController extends Controller
     public function destroy($id)
     {   
         if( ! auth()->guard('api')->check() ){
-            return $this->jsonResponse('false','You are not authorized!!', null, 401);
+            return $this->errorJsonResponse('You are not authorized!!', null, 401);
         }
 
         $product = $this->user()->products()->find($id);
     
         if (!$product) {
-            return $this->jsonResponse('false','Sorry, product with id ' . $id . ' cannot be found!!', null, 404);
+            return $this->errorJsonResponse('Sorry, product with id ' . $id . ' cannot be found!!', null, 404);
         }
         
         try {
             if ($product->delete()) {
-                return $this->jsonResponse('true','Product deleted Successfully!', '', 200);
+                return $this->successJsonResponse('Product deleted Successfully!', '', 200);
             } else {
-                return $this->jsonResponse('false','Sorry, product could not be updated!!', null, 422);
+                return $this->errorJsonResponse('Sorry, product could not be updated!!', null, 422);
             }
         } catch (Throwable $th) {
             Log::info($th);
-            return $this->jsonResponse('false','Sorry! something went wrong!!', null, 404);
+            return $this->errorJsonResponse('Sorry! something went wrong!!', null, 404);
         }
         
     }

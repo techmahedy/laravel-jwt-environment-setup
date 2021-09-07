@@ -11,17 +11,25 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-    protected function jsonResponse(string $boolean, string $message, $data = [], int $status_code)
+    protected function successJsonResponse(string $message, $data = [], int $status_code)
     {
         return response()->json([
-            'isSuccess' => $boolean,
+            'isSuccess' => true,
             'message'     => $message,
             'data'      => $data,
             'headers' => [
                 "Content-Type" => "application/json"
-            ],
-            "status" => $status_code
-        ]);
+            ]
+        ],$status_code);
+    }
+    
+    protected function errorJsonResponse(string $message, $data = [], int $status_code)
+    {
+        return response()->json([
+            'isSuccess' => false,
+            'error'     => $message,
+            'data'      => $data
+        ],$status_code);
     }
 
     protected function respondWithToken($token, $user)

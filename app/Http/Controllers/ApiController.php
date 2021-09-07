@@ -23,7 +23,7 @@ class ApiController extends Controller
             'password' => 'required|string|min:6|max:10'
         ]);
         if ($validator->fails()) {
-           return $this->jsonResponse('false','Email id already exists!', null, 422);
+           return $this->errorJsonResponse('Email id already exists!', null, 401);
         }
         else{
             try {
@@ -33,13 +33,13 @@ class ApiController extends Controller
                     $user->email    = $request->email;
                     $user->password = bcrypt($request->password);
                     $user->save();
-                    return $this->jsonResponse('true','Registration Created Successfully!', $user, 200);
+                    return $this->successJsonResponse('Registration Created Successfully!', $user, 200);
                 }else{
-                    return $this->jsonResponse('false','Reuested data is not valid!!', null, 422);
+                    return $this->errorJsonResponse('Reuested data is not valid!!', null, 422);
                 }
               } catch (Throwable $e) {
                     Log::info($e);
-                    return $this->jsonResponse('false','Something went wrong!', null, 422);
+                    return $this->errorJsonResponse('Something went wrong!', null, 422);
              }
         }
     }
@@ -50,7 +50,7 @@ class ApiController extends Controller
         $jwt_token = auth()->guard('api')->attempt($input);
         
         if (!$jwt_token = auth()->guard('api')->attempt($input)) {
-            return $this->jsonResponse('false','Invalid Email or Password!', null, 401);
+            return $this->errorJsonResponse('Invalid Email or Password!', null, 401);
         }
  
         $user = DB::table((new User)->getTable())
@@ -64,21 +64,20 @@ class ApiController extends Controller
     {  
         try {
             auth()->guard('api')->logout();
-            return $this->jsonResponse('true','User logged out successfully!', null, 401);
+            return $this->successJsonResponse('User logged out successfully!', null, 401);
         } catch (Throwable $exception) {
             Log::info($exception);
-            return $this->jsonResponse('false','Sorry, something went wrong!', null, 401);
+            return $this->errorJsonResponse('Sorry, something went wrong!', null, 401);
         }
     }
  
     public function getAuthenticatedUser(Request $request)
     {
         if( ! auth()->guard('api')->check() ){
-            return $this->jsonResponse('false','You are not authorized!!', null, 401);
+            return $this->errorJsonResponse('You are not authorized!!', null, 401);
         }
 
-        return $this->jsonResponse(
-            'true',
+        return $this->successJsonResponse(
             '',
             auth()->guard('api')->user(),
             200
